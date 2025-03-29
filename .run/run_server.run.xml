@@ -1,0 +1,38 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="run_server" type="docker-deploy" factoryName="docker-image" folderName="dev" server-name="Docker">
+    <deployment type="docker-image">
+      <settings>
+        <option name="imageTag" value="alexdaiii/proteomics-limma" />
+        <option name="command" value="python proteomics/analysis/run_analysis.py card server" />
+        <option name="containerName" value="" />
+        <option name="envVars">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="PYTHONPATH" />
+              <option name="value" value="/home/mambauser/code:$PYTHONPATH" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="portBindings">
+          <list>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="8324" />
+              <option name="hostPort" value="8324" />
+            </DockerPortBindingImpl>
+          </list>
+        </option>
+        <option name="commandLineOptions" value="-w /home/mambauser/code" />
+        <option name="showCommandPreview" value="true" />
+        <option name="volumeBindings">
+          <list>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/home/mambauser/code" />
+              <option name="hostPath" value="$PROJECT_DIR$" />
+            </DockerVolumeBindingImpl>
+          </list>
+        </option>
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>

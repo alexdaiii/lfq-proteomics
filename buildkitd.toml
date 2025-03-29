@@ -1,0 +1,4 @@
+[worker.oci]
+# Set to max num parallel jobs. For M1 Macs might be beneficial to set to 1
+# if <64GB of RAM
+max-parallelism = 1

@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+
+  #  proteomics:
+  #    image: alexdaiii/proteomics-limma:latest
+  #    volumes:
+  #      # NOTE: change to where the code for python dev container is located
+  #      - .:/home/mambauser/${WORKDIR:-code}
+  #    ports:
+  #      - ${METAFLOW_PORT:-8432}:8432
+  #    working_dir: /tmp/${WORKDIR:-code}
+  #    command:
+  #      - ls
+  #      - /home/mambauser
+
+  jupyter_server:
+    image: alexdaiii/proteomics-limma:latest
+    ports:
+      - "38888:8888"
+    command:
+      - python
+      - -m
+      - jupyterlab
+      - --no-browser
+      - -NotebookApp.allow_origin='*'
+      - --NotebookApp.ip='0.0.0.0'

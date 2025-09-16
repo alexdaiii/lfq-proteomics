@@ -1,5 +1,15 @@
 library(clusterProfiler)
 library(org.Mm.eg.db)
+
+# you have to install this manually if not using the docker image
+# First find the path to your R executable by typing `which R` in your terminal
+#
+# If you are using a conda R environment then the library will usually be located at
+# /path/to/your/conda/env/lib/R/library
+#
+# Then run the following command in your terminal:
+# /path/to/your/R/executable -e "install.packages('GOplot', repos='http://cran.r-project.org', lib='/path/to/your/R/library')"
+
 library(GOplot)
 library(enrichplot)
 library(stringr)
@@ -114,6 +124,26 @@ plot_ontology <- function(ont_result,
 }
 
 
+save_ego_result <- function (
+  df,
+  go_output_filename
+) {
+
+
+  if (is.null(df) || nrow(df) == 0) {
+    print(paste0("No results to save for ont ", go_output_filename))
+    return(FALSE)
+  }
+
+
+  print(paste0("Saving results to ", go_output_filename))
+  write.csv(df, go_output_filename, row.names = FALSE)
+
+
+  return (TRUE)
+
+}
+
 ego <- function(ont,
                 gene_ids,
                 go_output_dir,
@@ -162,18 +192,29 @@ ego <- function(ont,
     return()
   }
 
-  # try catch in case there are no terms
-  if (is.null(formula_res)) {
-    print(paste0("No ", ont))
-    return()
-  }
-
-  print("Writing results")
   enrich_csv <- file.path(go_output_dir, paste0(ont, "_enrich.csv"))
   contrast_csv <- file.path(go_output_dir, paste0(ont, "_contrast.csv"))
 
-  write.csv(formula_res, enrich_csv, row.names = FALSE)
-  write.csv(df_with_up_down, contrast_csv, row.names = FALSE)
+  result_enrich <- tryCatch(
+  {
+    save_ego_result(as.data.frame(formula_res), enrich_csv)
+  },
+    error = function(e) {
+      print(paste("Error in saving enrich results:", e))
+      return(FALSE)
+    }
+  )
+
+  result_contrast <- tryCatch(
+  {
+    save_ego_result(as.data.frame(df_with_up_down), contrast_csv)
+  },
+    error = function(e) {
+      print(paste("Error in saving contrast results:", e))
+      return(NULL)
+    }
+  )
+
 
   print(paste0("Plotting ", ont))
 
@@ -192,13 +233,38 @@ ego <- function(ont,
     )
   },
     error = function(e) {
-      print(paste("Error in plot_ontology function:", e))
+      print(paste("Error in plot_ontology function for regular:", e))
       return(NULL)
     }
   )
 
-  locations <- c(locations, make_location(enrich_csv, ont, "enrichResult"))
-  locations <- c(locations, make_location(contrast_csv, ont, "compareResult"))
+  tryCatch(
+  {
+    c(locations, plot_ontology(
+      ont_result = df_with_up_down,
+      ont = paste0(ont, "_contrast"),
+      output_dir = go_output_dir,
+      experiment = experiment,
+      width = width,
+      height = height
+    )
+    )
+  },
+    error = function(e) {
+      print(paste("Error in plot_ontology function for contrast:", e))
+      return(NULL)
+    }
+  )
+
+  if (result_enrich) {
+    locations <- c(locations, make_location(enrich_csv, ont, "enrichResult"))
+  }
+  if (result_contrast) {
+    locations <- c(locations, make_location(contrast_csv, ont, "compareResult"))
+  }
+
+  # locations <- c(locations, make_location(enrich_csv, ont, "enrichResult"))
+  # locations <- c(locations, make_location(contrast_csv, ont, "compareResult"))
 
   return(locations)
 
